@@ -6,7 +6,7 @@ from pokemon_mcp.server import Resource
 
 from core.repository import get_evolution, get_move, get_pokemon, list_pokemon
 from .schemas import PokemonDetail, PokemonSummary
-from server import server
+from legacy_server import server
 
 
 @server.resource("pokemon")

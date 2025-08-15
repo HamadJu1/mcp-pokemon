@@ -95,7 +95,6 @@ optional flags to accept default values.
 
 Core datasets are stored locally under `data/` and compiled from public information.
 When a requested Pokémon or move is missing, data is fetched live from PokeAPI.
-Pokémon and names are trademarks of Nintendo and Game Freak.
 
 Example `pokemon` resource call:
 

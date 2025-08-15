@@ -2,15 +2,30 @@
 
 A minimal deterministic Pokémon battle simulator wrapped in an MCP server.
 
-## Installation
+## Quick Start
+
+These steps get a fresh checkout running on any machine:
 
 ```bash
+# 1. Clone the repository
+git clone https://github.com/your-org/mcp-pokemon.git
+cd mcp-pokemon
+
+# 2. Create a virtual environment
 python -m venv .venv
 source .venv/bin/activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
+
+# 4. Run the test suite
+pytest
 ```
 
 ## Running the server
+
+Start the MCP server which exposes the Pokémon data resource and battle
+simulation tool:
 
 ```bash
 python server.py
@@ -60,7 +75,21 @@ print(res.winner)
 print(res.log[:3])
 ```
 
-Determinism is guaranteed through a seed parameter (default 42). Reusing the same seed yields identical battle logs.
+Determinism is guaranteed through a seed parameter (default 42). Reusing the
+same seed yields identical battle logs.
+
+## Command-line Battle Simulation
+
+The repository includes a standalone script for simulating battles without
+running the MCP server:
+
+```bash
+# simulate Pikachu vs. Squirtle at level 50
+python simulate_battle.py Pikachu Squirtle --level 50 --seed 123 --max-turns 200
+```
+
+The script prints the winner, a turn-by-turn log and the final state. Omit
+optional flags to accept default values.
 
 ## Data
 

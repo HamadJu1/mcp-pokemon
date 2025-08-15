@@ -38,8 +38,22 @@ class PokemonSummary(BaseModel):
     types: List[str]
 
 
+class MoveDetail(BaseModel):
+    name: str
+    type: str
+    power: int
+    category: str
+    accuracy: int
+    effect: Optional[str] = None
+
+
+class EvolutionDetail(BaseModel):
+    pre: Optional[str] = None
+    next: Optional[str] = None
+
+
 class PokemonDetail(PokemonSummary):
     base_stats: Dict[str, int]
     abilities: List[str]
-    moves: List[str]
-    evolution: Optional[str] = None
+    moves: List[MoveDetail]
+    evolution: EvolutionDetail

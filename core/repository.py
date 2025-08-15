@@ -15,15 +15,15 @@ def _load_json(name: str) -> Any:
 _POKEMON_INDEX: List[Dict[str, Any]] = _load_json("pokemon_index.json")
 _MOVES: Dict[str, Dict[str, Any]] = {m["name"]: m for m in _load_json("moves.json")}
 _TYPES: Dict[str, Dict[str, float]] = _load_json("types.json")
-_EVOS: Dict[str, str] = _load_json("evolutions.json")
+_EVOS: Dict[str, Dict[str, Any]] = _load_json("evolutions.json")
 
 
 def get_pokemon(identifier: str | int) -> Optional[Dict[str, Any]]:
     for p in _POKEMON_INDEX:
         if isinstance(identifier, int) and p["id"] == identifier:
-            return p
+            return dict(p)
         if isinstance(identifier, str) and p["name"].lower() == identifier.lower():
-            return p
+            return dict(p)
     return None
 
 
@@ -35,5 +35,5 @@ def list_pokemon() -> List[Dict[str, Any]]:
     return _POKEMON_INDEX
 
 
-def get_evolution(name: str) -> Optional[str]:
-    return _EVOS.get(name)
+def get_evolution(name: str) -> Dict[str, Any]:
+    return _EVOS.get(name, {})

@@ -21,6 +21,14 @@ List available tools and resources using the MCP client of your choice. This ser
 - Resource `pokemon`
 - Tool `simulate_battle`
 
+## Pokémon Data Resource
+
+The `pokemon` resource follows the MCP resource pattern. It lists available
+Pokémon and returns full details for each entry. When a Pokémon is not present
+in the bundled dataset, the resource connects to the public [PokeAPI](https://pokeapi.co/)
+to retrieve up-to-date information including base stats, types, abilities, moves
+and evolution data.
+
 ## Examples
 
 Fetch a Pokémon:
@@ -32,6 +40,12 @@ from core.repository import get_pokemon
 
 res = PokemonResource()
 print(res.get("Pikachu"))
+```
+
+Querying a Pokémon not in the local dataset triggers a fetch from PokeAPI:
+
+```python
+res.get("Lucario")
 ```
 
 Simulate a battle:
@@ -50,7 +64,8 @@ Determinism is guaranteed through a seed parameter (default 42). Reusing the sam
 
 ## Data
 
-All datasets are stored locally under `data/` and compiled from public information.
+Core datasets are stored locally under `data/` and compiled from public information.
+When a requested Pokémon or move is missing, data is fetched live from PokeAPI.
 Pokémon and names are trademarks of Nintendo and Game Freak.
 
 Example `pokemon` resource call:

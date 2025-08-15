@@ -1,0 +1,9 @@
+{
+  "Bulbasaur": "Ivysaur",
+  "Ivysaur": "Venusaur",
+  "Charmander": "Charmeleon",
+  "Charmeleon": "Charizard",
+  "Squirtle": "Wartortle",
+  "Wartortle": "Blastoise",
+  "Pikachu": "Raichu"
+}

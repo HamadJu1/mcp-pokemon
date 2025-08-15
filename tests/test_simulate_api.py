@@ -1,5 +1,5 @@
-from mcp.schemas import SimulateRequest
-from mcp.tools import simulate_battle_tool
+from pokemon_mcp.schemas import SimulateRequest
+from pokemon_mcp.tools import simulate_battle_tool
 
 
 def test_simulate_battle_api():

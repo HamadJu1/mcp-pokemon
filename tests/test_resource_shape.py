@@ -1,6 +1,6 @@
 import asyncio
 
-from mcp.resources import PokemonResource
+from pokemon_mcp.resources import PokemonResource
 
 
 async def _fetch(name: str):

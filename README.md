@@ -49,8 +49,8 @@ and evolution data.
 Fetch a Pokémon:
 
 ```python
-from mcp.resources import PokemonResource
-from mcp.schemas import PokemonDetail
+from pokemon_mcp.resources import PokemonResource
+from pokemon_mcp.schemas import PokemonDetail
 from core.repository import get_pokemon
 
 res = PokemonResource()
@@ -66,8 +66,8 @@ res.get("Lucario")
 Simulate a battle:
 
 ```python
-from mcp.tools import simulate_battle_tool
-from mcp.schemas import SimulateRequest
+from pokemon_mcp.tools import simulate_battle_tool
+from pokemon_mcp.schemas import SimulateRequest
 
 req = SimulateRequest(pokemonA="Pikachu", pokemonB="Squirtle", seed=42)
 res = simulate_battle_tool(req)

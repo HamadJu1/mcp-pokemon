@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from mcp.server import Resource
+from pokemon_mcp.server import Resource
 
 from core.repository import get_evolution, get_move, get_pokemon, list_pokemon
 from .schemas import PokemonDetail, PokemonSummary

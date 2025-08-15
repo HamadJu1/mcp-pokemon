@@ -1,7 +1,7 @@
 import argparse
 
-from mcp.tools import simulate_battle_tool
-from mcp.schemas import SimulateRequest
+from pokemon_mcp.tools import simulate_battle_tool
+from pokemon_mcp.schemas import SimulateRequest
 
 
 def main() -> None:

@@ -48,6 +48,25 @@ print(res.log[:3])
 
 Determinism is guaranteed through a seed parameter (default 42). Reusing the same seed yields identical battle logs.
 
+## Data
+
+All datasets are stored locally under `data/` and compiled from public information.
+Pokémon and names are trademarks of Nintendo and Game Freak.
+
+Example `pokemon` resource call:
+
+```json
+{
+  "id": 25,
+  "name": "Pikachu",
+  "types": ["Electric"],
+  "base_stats": {"hp": 35, "atk": 55, "def": 40, "sp_atk": 50, "sp_def": 50, "speed": 90},
+  "abilities": ["Static", "Lightning Rod"],
+  "moves": [{"name": "Thunderbolt", "type": "electric", "power": 90, "category": "special", "accuracy": 100, "effect": "may_paralyze"}, ...],
+  "evolution": {"pre": "Pichu", "next": "Raichu"}
+}
+```
+
 ## License
 
-Data is for demonstration only. Pokémon and names are trademarks of Nintendo and Game Freak.
+Data is for demonstration only.

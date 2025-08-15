@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 
 from mcp.server import Resource
 
-from core.repository import get_evolution, get_pokemon, list_pokemon
+from core.repository import get_evolution, get_move, get_pokemon, list_pokemon
 from .schemas import PokemonDetail, PokemonSummary
 from server import server
 
@@ -23,6 +23,16 @@ class PokemonResource(Resource):
         p = get_pokemon(key)
         if not p:
             raise KeyError("not found")
+        moves = [get_move(m) for m in p["moves"] if get_move(m)]
+        types = [t.capitalize() for t in p["types"]]
         evo = get_evolution(p["name"])
-        detail = PokemonDetail(**p, evolution=evo)
+        detail = PokemonDetail(
+            id=p["id"],
+            name=p["name"],
+            types=types,
+            base_stats=p["base_stats"],
+            abilities=p["abilities"],
+            moves=moves,
+            evolution=evo,
+        )
         return detail.dict()

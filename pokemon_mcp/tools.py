@@ -4,7 +4,7 @@ from pokemon_mcp.server import Tool
 
 from core.repository import get_pokemon
 from core.turn_engine import simulate_battle
-from server import server
+from legacy_server import server
 from .schemas import SimulateRequest, SimulateResponse
 
 

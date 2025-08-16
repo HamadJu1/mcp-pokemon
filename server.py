@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from mcp.server.fastmcp import FastMCP
 import openai
 from mcp.server.fastmcp.prompts.base import AssistantMessage

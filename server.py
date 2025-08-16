@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
+import openai
+from mcp.server.fastmcp.prompts.base import AssistantMessage
 
 # Existing domain functions and models
 from core.repository import get_evolution, get_move, get_pokemon, list_pokemon
@@ -11,6 +13,8 @@ try:
     V2 = hasattr(PokemonDetail, "model_dump")
 except Exception:
     raise
+
+openai.api_key = ""
 
 server = FastMCP()
 
@@ -86,3 +90,26 @@ async def simulate_battle(
         "turns": getattr(res, "turns", None),
         "log": getattr(res, "log", []),
     }
+
+
+@server.prompt("battle-strategy")
+def battle_strategy(pokemonA: str, pokemonB: str) -> list[AssistantMessage]:
+    """Generate battle strategies for two Pokémon via OpenAI."""
+    response = openai.chat.completions.create(
+        model="gpt-5-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a Pokémon battle expert. Analyze matchups and suggest strategies.",
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Simulate a battle between {pokemonA} and {pokemonB}. "
+                    "Provide type effectiveness, possible move choices, status effects, and a likely winner."
+                ),
+            },
+        ],
+    )
+    content = response.choices[0].message.content
+    return [AssistantMessage(content=content)]

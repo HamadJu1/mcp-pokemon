@@ -2,13 +2,25 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+import os
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # In-memory caches to avoid repeated network calls
 _POKEMON_CACHE: Dict[str, Dict[str, Any]] = {}
 _MOVE_CACHE: Dict[str, Dict[str, Any]] = {}
 _POKEMON_INDEX: List[Dict[str, Any]] | None = None
 _EVOLUTION_CACHE: Dict[str, Dict[str, Any]] = {}
+
+# Shared HTTP session for PokeAPI calls
+POKEAPI_TIMEOUT = float(os.getenv("POKEAPI_TIMEOUT", "10"))
+SESSION = requests.Session()
+_retries = Retry(total=3, backoff_factor=0.3, status_forcelist=[500, 502, 503, 504])
+_adapter = HTTPAdapter(max_retries=_retries)
+SESSION.mount("http://", _adapter)
+SESSION.mount("https://", _adapter)
+
 
 
 def get_pokemon(identifier: str | int) -> Optional[Dict[str, Any]]:
@@ -19,7 +31,9 @@ def get_pokemon(identifier: str | int) -> Optional[Dict[str, Any]]:
         return cached
 
     try:
-        resp = requests.get(f"https://pokeapi.co/api/v2/pokemon/{key}", timeout=10)
+        resp = SESSION.get(
+            f"https://pokeapi.co/api/v2/pokemon/{key}", timeout=POKEAPI_TIMEOUT
+        )
         if resp.status_code != 200:
             return None
         data = resp.json()
@@ -65,7 +79,9 @@ def get_move(name: str) -> Optional[Dict[str, Any]]:
 
     api_name = name.lower().replace(" ", "-")
     try:
-        resp = requests.get(f"https://pokeapi.co/api/v2/move/{api_name}", timeout=10)
+        resp = SESSION.get(
+            f"https://pokeapi.co/api/v2/move/{api_name}", timeout=POKEAPI_TIMEOUT
+        )
         if resp.status_code != 200:
             return None
         data = resp.json()
@@ -95,8 +111,8 @@ def list_pokemon() -> List[Dict[str, Any]]:
         return _POKEMON_INDEX
 
     try:
-        resp = requests.get(
-            "https://pokeapi.co/api/v2/pokemon?limit=151", timeout=10
+        resp = SESSION.get(
+            "https://pokeapi.co/api/v2/pokemon?limit=151", timeout=POKEAPI_TIMEOUT
         )
         if resp.status_code != 200:
             return []
@@ -121,8 +137,9 @@ def get_evolution(name: str) -> Dict[str, Any]:
         return cached
 
     try:
-        resp = requests.get(
-            f"https://pokeapi.co/api/v2/pokemon-species/{name.lower()}", timeout=10
+        resp = SESSION.get(
+            f"https://pokeapi.co/api/v2/pokemon-species/{name.lower()}",
+            timeout=POKEAPI_TIMEOUT,
         )
         if resp.status_code != 200:
             return {}
@@ -131,7 +148,9 @@ def get_evolution(name: str) -> Dict[str, Any]:
         if species.get("evolves_from_species"):
             result["pre"] = species["evolves_from_species"]["name"].title()
 
-        chain_resp = requests.get(species["evolution_chain"]["url"], timeout=10)
+        chain_resp = SESSION.get(
+            species["evolution_chain"]["url"], timeout=POKEAPI_TIMEOUT
+        )
         chain = chain_resp.json()["chain"]
 
         def _find(node: Dict[str, Any]) -> List[str]:

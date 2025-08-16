@@ -3,18 +3,20 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Dict, List
 
-import requests
+from .repository import POKEAPI_TIMEOUT, SESSION
 
 
 @lru_cache()
 def _load_chart() -> Dict[str, Dict[str, float]]:
     chart: Dict[str, Dict[str, float]] = {}
     try:
-        resp = requests.get("https://pokeapi.co/api/v2/type?limit=100", timeout=10)
+        resp = SESSION.get(
+            "https://pokeapi.co/api/v2/type?limit=100", timeout=POKEAPI_TIMEOUT
+        )
         if resp.status_code != 200:
             return chart
         for entry in resp.json()["results"]:
-            tdata = requests.get(entry["url"], timeout=10).json()
+            tdata = SESSION.get(entry["url"], timeout=POKEAPI_TIMEOUT).json()
             rel = tdata["damage_relations"]
             mapping: Dict[str, float] = {}
             for t in rel["double_damage_to"]:

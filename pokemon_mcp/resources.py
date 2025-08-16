@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional
 
 from pokemon_mcp.server import Resource
 
-from core.repository import get_evolution, get_move, get_pokemon, list_pokemon
+from core.repository import get_move, get_pokemon, list_pokemon
 from .schemas import PokemonDetail, PokemonSummary
 from legacy_server import server
 
@@ -23,9 +23,12 @@ class PokemonResource(Resource):
         p = get_pokemon(key)
         if not p:
             raise KeyError("not found")
-        moves = [get_move(m) for m in p["moves"] if get_move(m)]
+        moves = []
+        for name in p["moves"]:
+            mv = get_move(name)
+            if mv:
+                moves.append(mv)
         types = [t.capitalize() for t in p["types"]]
-        evo = get_evolution(p["name"])
         detail = PokemonDetail(
             id=p["id"],
             name=p["name"],
@@ -33,6 +36,6 @@ class PokemonResource(Resource):
             base_stats=p["base_stats"],
             abilities=p["abilities"],
             moves=moves,
-            evolution=evo,
+            evolution=p["evolution"],
         )
         return detail.dict()

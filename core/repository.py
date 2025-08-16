@@ -1,36 +1,25 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import requests
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-
-
-def _load_json(name: str) -> Any:
-    with (DATA_DIR / name).open() as f:
-        return json.load(f)
-
-
-_POKEMON_INDEX: List[Dict[str, Any]] = _load_json("pokemon_index.json")
-_MOVES: Dict[str, Dict[str, Any]] = {m["name"]: m for m in _load_json("moves.json")}
-_TYPES: Dict[str, Dict[str, float]] = _load_json("types.json")
-_EVOS: Dict[str, Dict[str, Any]] = _load_json("evolutions.json")
+# In-memory caches to avoid repeated network calls
+_POKEMON_CACHE: Dict[str, Dict[str, Any]] = {}
+_MOVE_CACHE: Dict[str, Dict[str, Any]] = {}
+_POKEMON_INDEX: List[Dict[str, Any]] | None = None
+_EVOLUTION_CACHE: Dict[str, Dict[str, Any]] = {}
 
 
 def get_pokemon(identifier: str | int) -> Optional[Dict[str, Any]]:
-    for p in _POKEMON_INDEX:
-        if isinstance(identifier, int) and p["id"] == identifier:
-            return dict(p)
-        if isinstance(identifier, str) and p["name"].lower() == identifier.lower():
-            return dict(p)
+    """Fetch a Pokémon by name or id from PokeAPI."""
+    key = str(identifier).lower()
+    cached = _POKEMON_CACHE.get(key)
+    if cached:
+        return cached
 
-    # Fallback to the public PokeAPI if the Pokémon is not in the local index
-    name = str(identifier).lower()
     try:
-        resp = requests.get(f"https://pokeapi.co/api/v2/pokemon/{name}", timeout=10)
+        resp = requests.get(f"https://pokeapi.co/api/v2/pokemon/{key}", timeout=10)
         if resp.status_code != 200:
             return None
         data = resp.json()
@@ -41,9 +30,11 @@ def get_pokemon(identifier: str | int) -> Optional[Dict[str, Any]]:
             a["ability"]["name"].replace("-", " ").title() for a in data["abilities"]
         ]
         types = [t["type"]["name"] for t in data["types"]]
-        move_names = [m["move"]["name"].replace("-", " ").title() for m in data["moves"][:4]]
+        move_names = [
+            m["move"]["name"].replace("-", " ").title() for m in data["moves"]
+        ]
         evo = get_evolution(data["name"])
-        return {
+        result = {
             "id": data["id"],
             "name": data["name"].title(),
             "types": types,
@@ -59,12 +50,16 @@ def get_pokemon(identifier: str | int) -> Optional[Dict[str, Any]]:
             "moves": move_names,
             "evolution": evo,
         }
+        _POKEMON_CACHE[key] = result
+        _POKEMON_CACHE[str(result["id"])] = result
+        return result
     except Exception:
         return None
 
 
 def get_move(name: str) -> Optional[Dict[str, Any]]:
-    move = _MOVES.get(name)
+    """Fetch move data from PokeAPI."""
+    move = _MOVE_CACHE.get(name)
     if move:
         return move
 
@@ -87,22 +82,44 @@ def get_move(name: str) -> Optional[Dict[str, Any]]:
             "accuracy": data["accuracy"],
             "effect": effect,
         }
-        _MOVES[move["name"]] = move
+        _MOVE_CACHE[move["name"]] = move
         return move
     except Exception:
         return None
 
 
 def list_pokemon() -> List[Dict[str, Any]]:
-    return _POKEMON_INDEX
+    """Return a list of Pokémon summaries from PokeAPI."""
+    global _POKEMON_INDEX
+    if _POKEMON_INDEX is not None:
+        return _POKEMON_INDEX
+
+    try:
+        resp = requests.get(
+            "https://pokeapi.co/api/v2/pokemon?limit=151", timeout=10
+        )
+        if resp.status_code != 200:
+            return []
+        results = resp.json()["results"]
+        index: List[Dict[str, Any]] = []
+        for item in results:
+            detail = get_pokemon(item["name"])
+            if detail:
+                index.append(
+                    {"id": detail["id"], "name": detail["name"], "types": detail["types"]}
+                )
+        _POKEMON_INDEX = index
+        return index
+    except Exception:
+        return []
 
 
 def get_evolution(name: str) -> Dict[str, Any]:
-    evo = _EVOS.get(name)
-    if evo:
-        return evo
+    """Fetch evolution info for a Pokémon from PokeAPI."""
+    cached = _EVOLUTION_CACHE.get(name)
+    if cached is not None:
+        return cached
 
-    # Query PokeAPI for evolution data
     try:
         resp = requests.get(
             f"https://pokeapi.co/api/v2/pokemon-species/{name.lower()}", timeout=10
@@ -117,10 +134,10 @@ def get_evolution(name: str) -> Dict[str, Any]:
         chain_resp = requests.get(species["evolution_chain"]["url"], timeout=10)
         chain = chain_resp.json()["chain"]
 
-        def _find(chain: Dict[str, Any]) -> List[str]:
-            if chain["species"]["name"] == name.lower():
-                return [e["species"]["name"] for e in chain["evolves_to"]]
-            for e in chain["evolves_to"]:
+        def _find(node: Dict[str, Any]) -> List[str]:
+            if node["species"]["name"] == name.lower():
+                return [e["species"]["name"] for e in node["evolves_to"]]
+            for e in node["evolves_to"]:
                 res = _find(e)
                 if res:
                     return res
@@ -131,7 +148,7 @@ def get_evolution(name: str) -> Dict[str, Any]:
             formatted = [n.title() for n in next_evos]
             result["next"] = formatted[0] if len(formatted) == 1 else formatted
 
-        _EVOS[name] = result
+        _EVOLUTION_CACHE[name] = result
         return result
     except Exception:
         return {}

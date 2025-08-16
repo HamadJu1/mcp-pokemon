@@ -39,10 +39,10 @@ List available tools and resources using the MCP client of your choice. This ser
 ## Pokémon Data Resource
 
 The `pokemon` resource follows the MCP resource pattern. It lists available
-Pokémon and returns full details for each entry. When a Pokémon is not present
-in the bundled dataset, the resource connects to the public [PokeAPI](https://pokeapi.co/)
-to retrieve up-to-date information including base stats, types, abilities, moves
-and evolution data.
+Pokémon and returns full details for each entry. All information is fetched live
+from the public [PokeAPI](https://pokeapi.co/), including base stats, types,
+abilities, move details (type, power, accuracy, category and effect) and
+evolution data. No local dataset is bundled with the server.
 
 ## Examples
 
@@ -57,7 +57,7 @@ res = PokemonResource()
 print(res.get("Pikachu"))
 ```
 
-Querying a Pokémon not in the local dataset triggers a fetch from PokeAPI:
+Querying any Pokémon fetches data from PokeAPI:
 
 ```python
 res.get("Lucario")
@@ -90,11 +90,6 @@ python simulate_battle.py Pikachu Squirtle --level 50 --seed 123 --max-turns 200
 
 The script prints the winner, a turn-by-turn log and the final state. Omit
 optional flags to accept default values.
-
-## Data
-
-Core datasets are stored locally under `data/` and compiled from public information.
-When a requested Pokémon or move is missing, data is fetched live from PokeAPI.
 
 Example `pokemon` resource call:
 

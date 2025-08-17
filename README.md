@@ -22,6 +22,29 @@ pip install -r requirements.txt
 pytest
 ```
 
+## Provider setup
+
+Option A (recommended):
+
+```bash
+cp .env.example .env
+# then put your key:
+echo 'OPENAI_API_KEY=sk-...' >> .env
+```
+
+Start Inspector from a shell that loads `.env`.
+
+Option B:
+
+```bash
+echo 'sk-...' > .openai_key
+export OPENAI_API_KEY="$(cat .openai_key)"
+```
+
+In MCP Inspector, if there is a "Providers/Clients File" picker, point it at `.mcp/providers.yaml`.
+
+Set the active chat model in MCP Inspector (Sampling/Elicitations or Settings) to `gpt-4.1-mini` and ensure tool/function-calling is enabled for this workspace.
+
 ## Running the server
 
 Start the MCP server which exposes the Pokémon data resource and battle

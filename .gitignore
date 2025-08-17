@@ -1,1 +1,4 @@
 mcp-pokemon.zip
+.env
+.openai_key
+*.local.yaml

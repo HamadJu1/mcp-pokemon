@@ -97,10 +97,11 @@ def battle_strategy(pokemonA: str, pokemonB: str) -> list[Message]:
         role="system",
         content=[
             TextContent(
+                type="text",
                 text=(
                     "You are a concise, tactical Pokémon battle analyst. "
                     "Favor accurate type matchups, realistic movesets, and step-by-step reasoning."
-                )
+                ),
             )
         ],
     )
@@ -108,6 +109,7 @@ def battle_strategy(pokemonA: str, pokemonB: str) -> list[Message]:
         role="user",
         content=[
             TextContent(
+                type="text",
                 text=(
                     f"""
 Analyze {pokemonA} vs {pokemonB}.
@@ -118,7 +120,7 @@ Analyze {pokemonA} vs {pokemonB}.
 5) Likely win path for each side and one high-risk tech option.
 Return a compact plan with bullet points and a final one-paragraph verdict.
 """
-                )
+                ),
             )
         ],
     )
@@ -129,12 +131,13 @@ Return a compact plan with bullet points and a final one-paragraph verdict.
 def move_explainer(moveName: str) -> list[Message]:
     system_msg = Message(
         role="system",
-        content=[TextContent(text="You are a Pokémon move encyclopedia, explaining mechanics clearly.")],
+        content=[TextContent(type="text", text="You are a Pokémon move encyclopedia, explaining mechanics clearly.")],
     )
     user_msg = Message(
         role="user",
         content=[
             TextContent(
+                type="text",
                 text=(
                     f"""
 Explain the move: {moveName}.
@@ -146,7 +149,7 @@ Include:
 - Notable Pokémon that learn it
 Return a structured explanation in bullet points.
 """
-                )
+                ),
             )
         ],
     )
@@ -157,12 +160,13 @@ Return a structured explanation in bullet points.
 def evolution_guide(pokemonName: str) -> list[Message]:
     system_msg = Message(
         role="system",
-        content=[TextContent(text="You are a knowledgeable Pokémon professor explaining evolutions.")],
+        content=[TextContent(type="text", text="You are a knowledgeable Pokémon professor explaining evolutions.")],
     )
     user_msg = Message(
         role="user",
         content=[
             TextContent(
+                type="text",
                 text=(
                     f"""
 Explain how {pokemonName} evolves.
@@ -172,7 +176,7 @@ Include:
 - Competitive implications of each stage
 - One interesting trivia fact
 """
-                )
+                ),
             )
         ],
     )
@@ -183,12 +187,13 @@ Include:
 def type_matchup(typeA: str, typeB: str) -> list[Message]:
     system_msg = Message(
         role="system",
-        content=[TextContent(text="You are a Pokémon type chart analyst.")],
+        content=[TextContent(type="text", text="You are a Pokémon type chart analyst.")],
     )
     user_msg = Message(
         role="user",
         content=[
             TextContent(
+                type="text",
                 text=(
                     f"""
 Analyze type matchup: {typeA} vs {typeB}.
@@ -198,7 +203,7 @@ Include:
 - Typical strategies when these types face each other
 - Competitive history or common meta insights
 """
-                )
+                ),
             )
         ],
     )
@@ -209,19 +214,20 @@ Include:
 def quick_trivia(topic: str) -> list[Message]:
     system_msg = Message(
         role="system",
-        content=[TextContent(text="You are a fun Pokémon trivia master.")],
+        content=[TextContent(type="text", text="You are a fun Pokémon trivia master.")],
     )
     user_msg = Message(
         role="user",
         content=[
             TextContent(
+                type="text",
                 text=(
                     f"""
 Give me 3–4 short trivia facts about {topic}.
 Each fact should be surprising, concise, and accurate.
 End with one one-sentence fun fact.
 """
-                )
+                ),
             )
         ],
     )

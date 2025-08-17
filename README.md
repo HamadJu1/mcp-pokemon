@@ -67,10 +67,8 @@ Simulate a battle:
 
 ```python
 from pokemon_mcp.tools import simulate_battle_tool
-from pokemon_mcp.schemas import SimulateRequest
 
-req = SimulateRequest(pokemonA="Pikachu", pokemonB="Squirtle", seed=42)
-res = simulate_battle_tool(req)
+res = simulate_battle_tool(pokemonA="Pikachu", pokemonB="Squirtle", seed=42)
 print(res.winner)
 print(res.log[:3])
 ```

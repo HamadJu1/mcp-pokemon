@@ -9,8 +9,34 @@ from .schemas import SimulateRequest, SimulateResponse
 
 
 @server.tool("simulate_battle")
-def simulate_battle_tool(params: SimulateRequest) -> SimulateResponse:
-    a = get_pokemon(params.pokemonA)
-    b = get_pokemon(params.pokemonB)
-    result = simulate_battle(a, b, level=params.level, seed=params.seed, max_turns=params.maxTurns)
+def simulate_battle_tool(
+    pokemonA: str,
+    pokemonB: str,
+    level: int = 50,
+    seed: int = 42,
+    maxTurns: int = 200,
+) -> SimulateResponse:
+    """Simulate a battle between two Pokémon.
+
+    Args:
+        pokemonA: Name of the first Pokémon.
+        pokemonB: Name of the second Pokémon.
+        level: Battle level (1-100).
+        seed: RNG seed for determinism.
+        maxTurns: Maximum number of turns to simulate.
+    """
+
+    req = SimulateRequest(
+        pokemonA=pokemonA,
+        pokemonB=pokemonB,
+        level=level,
+        seed=seed,
+        maxTurns=maxTurns,
+    )
+
+    a = get_pokemon(req.pokemonA)
+    b = get_pokemon(req.pokemonB)
+    result = simulate_battle(
+        a, b, level=req.level, seed=req.seed, max_turns=req.maxTurns
+    )
     return SimulateResponse(**result)

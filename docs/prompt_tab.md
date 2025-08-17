@@ -9,7 +9,8 @@ LLM reasoning.
 1. When the user asks to simulate or play out a Pokémon battle, always call the
    `simulate_battle` tool exactly once.
 2. Pass the parameters provided by the user. Omit any that are unspecified—the
-   server supplies defaults for `level`, `seed`, and `maxTurns`.
+   server supplies defaults for `level`, `seed`, and `maxTurns`. Do **not** wrap
+   arguments inside a `params` object; place them directly within `input`.
 3. After the tool responds, summarize its JSON output succinctly:
    - state the `winner` and the number of `turns`;
    - list **3–6** notable highlights extracted from the `log` entries.

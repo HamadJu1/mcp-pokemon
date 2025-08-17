@@ -7,7 +7,7 @@ from core.repository import get_evolution, get_move, get_pokemon, list_pokemon
 
 try:
     # Pydantic v2 models preferred
-    from pokemon_mcp.schemas import PokemonDetail, PokemonSummary
+    from pokemon_mcp.schemas import PokemonDetail, PokemonSummary, SimulateRequest
     V2 = hasattr(PokemonDetail, "model_dump")
 except Exception:
     raise
@@ -59,34 +59,26 @@ async def get_pokemon_resource(id: str) -> dict:
     return _to_dict(detail)
 
 
-@server.tool()
-async def simulate_battle(
-    pokemonA: str,
-    pokemonB: str,
-    level: int = 50,
-    seed: int = 42,
-    maxTurns: int = 200,
-) -> dict:
-    """
-    Run a full battle simulation and return a structured result:
-    {"winner": str, "turns": int, "log": List[...]}
-    """
+@server.tool(name="simulate_battle")
+async def simulate_battle(params: SimulateRequest) -> dict:
+    """Run a battle simulation and return structured JSON."""
     from pokemon_mcp.tools import simulate_battle_tool
-    from pokemon_mcp.schemas import SimulateRequest
 
-    req = SimulateRequest(
-        pokemonA=pokemonA,
-        pokemonB=pokemonB,
-        level=level,
-        seed=seed,
-        maxTurns=maxTurns,
-    )
-    res = simulate_battle_tool(req)
+    # Apply defaults via the Pydantic model
+    req = SimulateRequest(**params.model_dump())  # ensures defaults for missing fields
+
+    try:
+        res = simulate_battle_tool(req)
+    except Exception as e:  # pragma: no cover - surface as ValueError
+        suggestions = [p["name"] for p in list_pokemon()[:2]]
+        raise ValueError(
+            f"{e}. Try names like {suggestions[0]} or {suggestions[1]}"
+        ) from e
 
     return {
-        "winner": getattr(res, "winner", None),
-        "turns": getattr(res, "turns", None),
-        "log": getattr(res, "log", []),
+        "winner": res.winner,
+        "turns": res.turns,
+        "log": [_to_dict(entry) for entry in res.log],
     }
 
 

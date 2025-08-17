@@ -35,6 +35,7 @@ List available tools and resources using the MCP client of your choice. This ser
 
 - Resource `pokemon`
 - Tool `simulate_battle`
+- Prompts `battle-strategy` and `simulate-battle`
 
 ## Pokémon Data Resource
 

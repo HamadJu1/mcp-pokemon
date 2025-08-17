@@ -92,10 +92,14 @@ async def simulate_battle(
 
 @server.prompt("battle-strategy")
 def battle_strategy(pokemonA: str, pokemonB: str) -> list[AssistantMessage]:
-    """Generate battle strategies for two Pokémon via OpenAI."""
-    response = openai.chat.completions.create(
-        model="gpt-5-mini",
-        messages=[
+    """Generate battle strategies for two Pokémon via OpenAI.
+
+    The call leverages the MCP server so the model can explore resources and
+    invoke the ``simulate_battle`` tool when forming its response.
+    """
+    response = openai.responses.create(
+        model="gpt-4.1-mini",
+        input=[
             {
                 "role": "system",
                 "content": "You are a Pokémon battle expert. Analyze matchups and suggest strategies.",
@@ -108,6 +112,39 @@ def battle_strategy(pokemonA: str, pokemonB: str) -> list[AssistantMessage]:
                 ),
             },
         ],
+        tools=[{"type": "mcp", "server": server}],
     )
-    content = response.choices[0].message.content
+    content = getattr(response, "output_text", "")
+    return [AssistantMessage(content=content)]
+
+
+@server.prompt("simulate-battle")
+def simulate_battle_prompt(
+    pokemonA: str,
+    pokemonB: str,
+    level: int = 50,
+    seed: int = 42,
+    maxTurns: int = 200,
+) -> list[AssistantMessage]:
+    """Run a full battle simulation via OpenAI using the ``simulate_battle`` tool."""
+
+    response = openai.responses.create(
+        model="gpt-4.1-mini",
+        input=[
+            {
+                "role": "system",
+                "content": "Use the `simulate_battle` tool to run Pokémon battles and report the results.",
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Simulate {pokemonA} vs {pokemonB} at level {level} with seed {seed} "
+                    f"and a maximum of {maxTurns} turns. Summarize the outcome."
+                ),
+            },
+        ],
+        tools=[{"type": "mcp", "server": server}],
+    )
+
+    content = getattr(response, "output_text", "")
     return [AssistantMessage(content=content)]

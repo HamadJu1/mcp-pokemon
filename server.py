@@ -7,7 +7,7 @@ from core.repository import get_evolution, get_move, get_pokemon, list_pokemon
 
 try:
     # Pydantic v2 models preferred
-    from pokemon_mcp.schemas import PokemonDetail, PokemonSummary, SimulateRequest
+    from pokemon_mcp.schemas import PokemonDetail, PokemonSummary
     V2 = hasattr(PokemonDetail, "model_dump")
 except Exception:
     raise
@@ -60,15 +60,24 @@ async def get_pokemon_resource(id: str) -> dict:
 
 
 @server.tool(name="simulate_battle")
-async def simulate_battle(params: SimulateRequest) -> dict:
+async def simulate_battle(
+    pokemonA: str,
+    pokemonB: str,
+    level: int = 50,
+    seed: int = 42,
+    maxTurns: int = 200,
+) -> dict:
     """Run a battle simulation and return structured JSON."""
     from pokemon_mcp.tools import simulate_battle_tool
 
-    # Apply defaults via the Pydantic model
-    req = SimulateRequest(**params.model_dump())  # ensures defaults for missing fields
-
     try:
-        res = simulate_battle_tool(req)
+        res = simulate_battle_tool(
+            pokemonA=pokemonA,
+            pokemonB=pokemonB,
+            level=level,
+            seed=seed,
+            maxTurns=maxTurns,
+        )
     except Exception as e:  # pragma: no cover - surface as ValueError
         suggestions = [p["name"] for p in list_pokemon()[:2]]
         raise ValueError(
@@ -86,7 +95,7 @@ async def simulate_battle(params: SimulateRequest) -> dict:
 def battle_strategy(pokemonA: str, pokemonB: str) -> list[AssistantMessage]:
     """Generate battle strategies for two Pokémon via OpenAI."""
     response = openai.chat.completions.create(
-        model="gpt-5-mini",
+        model="gpt-4.1-mini",
         messages=[
             {
                 "role": "system",
@@ -99,6 +108,45 @@ def battle_strategy(pokemonA: str, pokemonB: str) -> list[AssistantMessage]:
                     "Provide type effectiveness, possible move choices, status effects, and a likely winner."
                 ),
             },
+        ],
+    )
+    content = response.choices[0].message.content
+    return [AssistantMessage(content=content)]
+
+
+@server.prompt("type-effectiveness")
+def type_effectiveness(pokemon_type: str, against_type: str) -> list[AssistantMessage]:
+    """Explain how effective one Pokémon type is against another."""
+    response = openai.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a Pokémon type matchup expert.",
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"How effective are {pokemon_type} moves against {against_type} types?"
+                ),
+            },
+        ],
+    )
+    content = response.choices[0].message.content
+    return [AssistantMessage(content=content)]
+
+
+@server.prompt("pokemon-fact")
+def pokemon_fact(name: str) -> list[AssistantMessage]:
+    """Provide a fun fact about a given Pokémon."""
+    response = openai.chat.completions.create(
+        model="gpt-4.1-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "You share concise and interesting Pokémon trivia.",
+            },
+            {"role": "user", "content": f"Give a fun fact about {name}."},
         ],
     )
     content = response.choices[0].message.content

@@ -1,7 +1,6 @@
 import argparse
 
 from pokemon_mcp.tools import simulate_battle_tool
-from pokemon_mcp.schemas import SimulateRequest
 
 
 def main() -> None:
@@ -19,14 +18,13 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    req = SimulateRequest(
+    res = simulate_battle_tool(
         pokemonA=args.pokemonA,
         pokemonB=args.pokemonB,
         level=args.level,
         seed=args.seed,
         maxTurns=args.max_turns,
     )
-    res = simulate_battle_tool(req)
 
     print(f"Winner: {res.winner} after {res.turns} turns")
     for entry in res.log:

@@ -1,6 +1,8 @@
 from mcp.server.fastmcp import FastMCP
-import openai
-from mcp.server.fastmcp.prompts.base import AssistantMessage
+try:  # Prefer new MCP types if available
+    from mcp.types import Message, TextContent
+except ImportError:  # Backward compatibility for older MCP versions
+    from mcp.server.fastmcp.prompts.base import Message, TextContent
 
 # Existing domain functions and models
 from core.repository import get_evolution, get_move, get_pokemon, list_pokemon
@@ -12,7 +14,6 @@ try:
 except Exception:
     raise
 
-openai.api_key = ""
 
 server = FastMCP()
 
@@ -91,23 +92,141 @@ async def simulate_battle(
 
 
 @server.prompt("battle-strategy")
-def battle_strategy(pokemonA: str, pokemonB: str) -> list[AssistantMessage]:
-    """Generate battle strategies for two Pokémon via OpenAI."""
-    response = openai.chat.completions.create(
-        model="gpt-5-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a Pokémon battle expert. Analyze matchups and suggest strategies.",
-            },
-            {
-                "role": "user",
-                "content": (
-                    f"Simulate a battle between {pokemonA} and {pokemonB}. "
-                    "Provide type effectiveness, possible move choices, status effects, and a likely winner."
-                ),
-            },
+def battle_strategy(pokemonA: str, pokemonB: str) -> list[Message]:
+    system_msg = Message(
+        role="system",
+        content=[
+            TextContent(
+                text=(
+                    "You are a concise, tactical Pokémon battle analyst. "
+                    "Favor accurate type matchups, realistic movesets, and step-by-step reasoning."
+                )
+            )
         ],
     )
-    content = response.choices[0].message.content
-    return [AssistantMessage(content=content)]
+    user_msg = Message(
+        role="user",
+        content=[
+            TextContent(
+                text=(
+                    f"""
+Analyze {pokemonA} vs {pokemonB}.
+1) Types, key resistances/immunities, and expected effectiveness.
+2) 3–4 optimal moves each (move name + why).
+3) Viable status plays (burn/poison/paralysis): when and why.
+4) Speed/turn-order considerations and pivotal damage thresholds.
+5) Likely win path for each side and one high-risk tech option.
+Return a compact plan with bullet points and a final one-paragraph verdict.
+"""
+                )
+            )
+        ],
+    )
+    return [system_msg, user_msg]
+
+
+@server.prompt("move-explainer")
+def move_explainer(moveName: str) -> list[Message]:
+    system_msg = Message(
+        role="system",
+        content=[TextContent(text="You are a Pokémon move encyclopedia, explaining mechanics clearly.")],
+    )
+    user_msg = Message(
+        role="user",
+        content=[
+            TextContent(
+                text=(
+                    f"""
+Explain the move: {moveName}.
+Include:
+- Type and category (physical/special/status)
+- Base power and accuracy
+- PP
+- Key competitive uses
+- Notable Pokémon that learn it
+Return a structured explanation in bullet points.
+"""
+                )
+            )
+        ],
+    )
+    return [system_msg, user_msg]
+
+
+@server.prompt("evolution-guide")
+def evolution_guide(pokemonName: str) -> list[Message]:
+    system_msg = Message(
+        role="system",
+        content=[TextContent(text="You are a knowledgeable Pokémon professor explaining evolutions.")],
+    )
+    user_msg = Message(
+        role="user",
+        content=[
+            TextContent(
+                text=(
+                    f"""
+Explain how {pokemonName} evolves.
+Include:
+- Evolution chain with names
+- Methods (level, items, friendship, trade, etc.)
+- Competitive implications of each stage
+- One interesting trivia fact
+"""
+                )
+            )
+        ],
+    )
+    return [system_msg, user_msg]
+
+
+@server.prompt("type-matchup")
+def type_matchup(typeA: str, typeB: str) -> list[Message]:
+    system_msg = Message(
+        role="system",
+        content=[TextContent(text="You are a Pokémon type chart analyst.")],
+    )
+    user_msg = Message(
+        role="user",
+        content=[
+            TextContent(
+                text=(
+                    f"""
+Analyze type matchup: {typeA} vs {typeB}.
+Include:
+- Effectiveness multipliers (super-effective, not very effective, immune)
+- Example Pokémon that embody each type
+- Typical strategies when these types face each other
+- Competitive history or common meta insights
+"""
+                )
+            )
+        ],
+    )
+    return [system_msg, user_msg]
+
+
+@server.prompt("quick-trivia")
+def quick_trivia(topic: str) -> list[Message]:
+    system_msg = Message(
+        role="system",
+        content=[TextContent(text="You are a fun Pokémon trivia master.")],
+    )
+    user_msg = Message(
+        role="user",
+        content=[
+            TextContent(
+                text=(
+                    f"""
+Give me 3–4 short trivia facts about {topic}.
+Each fact should be surprising, concise, and accurate.
+End with one one-sentence fun fact.
+"""
+                )
+            )
+        ],
+    )
+    return [system_msg, user_msg]
+
+
+if __name__ == "__main__":
+    server.run()
